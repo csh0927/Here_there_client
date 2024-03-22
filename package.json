@@ -37,10 +37,10 @@
       "last 1 safari version"
     ]
   },
-  "packageManager": "yarn@4.1.1",
   "devDependencies": {
     "eslint-config-react-app": "^7.0.1",
     "react-app-rewire-alias": "^1.1.7",
     "react-app-rewired": "^2.2.1"
-  }
+  },
+  "packageManager": "yarn@4.1.1"
 }
