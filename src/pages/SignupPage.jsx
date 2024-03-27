@@ -2,9 +2,15 @@ import AuthHeader from '@/components/header/AuthHeader';
 import styled from 'styled-components';
 import { useState } from 'react';
 
-const LoginPage = () => {
+const SignupPage = () => {
+    const [nickname, setNickname] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+
+    const handleNicknameChange = (e) => {
+        setNickname(e.target.value);
+    };
 
     const handleEmailChange = (e) => {
         setEmail(e.target.value);
@@ -14,30 +20,29 @@ const LoginPage = () => {
         setPassword(e.target.value);
     };
 
-    const handleLoginFormSubmit = (e) => {
+    const handleConfirmPasswordChange = (e) => {
+        setConfirmPassword(e.target.value);
+    };
+
+    const handleSignupFormSubmit = (e) => {
         e.preventDefault();
 
+        console.log('Nickname:', nickname);
         console.log('Email:', email);
         console.log('Password:', password);
+        console.log('Confirm Password:', confirmPassword);
 
-        window.location.href = '/';
+        window.location.href = '/login';
     };
 
     return (
         <div>
             <AuthHeader />
-            <LoginBox>
-                <LoginInner>
-                    <h1>
-                        <br />
-                        <br />
-                        <br />
-                        <br />
-                        <br />
-                        <br />
-                        로그인
-                    </h1>
-                    <LoginForm onSubmit={handleLoginFormSubmit}>
+            <SignupBox>
+                <SignupInner>
+                    <h1>회원가입</h1>
+                    <SignupForm onSubmit={handleSignupFormSubmit}>
+                        <InputField type="text" placeholder="닉네임" value={nickname} onChange={handleNicknameChange} />
                         <InputField type="email" placeholder="이메일" value={email} onChange={handleEmailChange} />
                         <InputField
                             type="password"
@@ -45,27 +50,34 @@ const LoginPage = () => {
                             value={password}
                             onChange={handlePasswordChange}
                         />
-                        <LoginButton type="submit">로그인</LoginButton>
-                    </LoginForm>
-                </LoginInner>
-            </LoginBox>
+                        <InputField
+                            type="password"
+                            placeholder="비밀번호 확인"
+                            value={confirmPassword}
+                            onChange={handleConfirmPasswordChange}
+                        />
+                        <SignupButton type="submit">회원가입</SignupButton>
+                    </SignupForm>
+                </SignupInner>
+            </SignupBox>
         </div>
     );
 };
 
-export default LoginPage;
+export default SignupPage;
 
-const LoginBox = styled.div`
+const SignupBox = styled.div`
     display: flex;
     justify-content: center;
-    height: 100vh;
+    align-items: center;
+    height: 80vh;
 `;
 
-const LoginInner = styled.div`
+const SignupInner = styled.div`
     text-align: center;
 `;
 
-const LoginForm = styled.form`
+const SignupForm = styled.form`
     display: flex;
     flex-direction: column;
     gap: 20px;
@@ -80,7 +92,7 @@ const InputField = styled.input`
     border: 1px solid #ccc;
 `;
 
-const LoginButton = styled.button`
+const SignupButton = styled.button`
     background-color: #f5ddd6;
     color: black;
     max-width: 303px;
