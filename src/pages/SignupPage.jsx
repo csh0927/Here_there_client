@@ -1,38 +1,43 @@
 import AuthHeader from '@/components/header/AuthHeader';
 import styled from 'styled-components';
 import { useState } from 'react';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+
 
 const SignupPage = () => {
-    const [nickname, setNickname] = useState('');
+
     const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [confirmPassword, setConfirmPassword] = useState('');
+    const [nickname, setNickname] = useState('');
+    const [pw, setPw] = useState('');
+    const [checkPw, setCheckPw] = useState('')
+    const navigation = useNavigate();
 
-    const handleNicknameChange = (e) => {
-        setNickname(e.target.value);
-    };
 
-    const handleEmailChange = (e) => {
-        setEmail(e.target.value);
-    };
+    const signupOnclick = () => {
+        if (!email || !nickname) {
+            alert('빈 곳 없이 입력해주세요.');
+            return;
+        }
 
-    const handlePasswordChange = (e) => {
-        setPassword(e.target.value);
-    };
+        if (pw != checkPw) {
+            alert('비밀번호를 올바르게 재입력해주세요.')
+            return;
+        }
 
-    const handleConfirmPasswordChange = (e) => {
-        setConfirmPassword(e.target.value);
-    };
-
-    const handleSignupFormSubmit = (e) => {
-        e.preventDefault();
-
-        console.log('Nickname:', nickname);
-        console.log('Email:', email);
-        console.log('Password:', password);
-        console.log('Confirm Password:', confirmPassword);
-
-        window.location.href = '/login';
+        axios
+            .post(`http://localhost:8081/users`, {
+                nickname: nickname,
+                email: email,
+                password: pw
+            })
+            .then(() => {
+                navigation('/')
+            })
+            .catch((error) => {
+                console.error('회원가입 요청 실패:', error);
+                alert('회원가입 요청에 실패했습니다. 다시 시도해주세요.');
+            });
     };
 
     return (
@@ -41,22 +46,32 @@ const SignupPage = () => {
             <SignupBox>
                 <SignupInner>
                     <h1>회원가입</h1>
-                    <SignupForm onSubmit={handleSignupFormSubmit}>
-                        <InputField type="text" placeholder="닉네임" value={nickname} onChange={handleNicknameChange} />
-                        <InputField type="email" placeholder="이메일" value={email} onChange={handleEmailChange} />
+                    <SignupForm>
+                        <InputField 
+                            type="text" 
+                            placeholder="닉네임" 
+                            value={nickname}
+                            onChange={(e) => setNickname(e.target.value)} 
+                         />
+                        <InputField 
+                            type="email" 
+                            placeholder="이메일" 
+                            value={email} 
+                            onChange={(e) => setEmail(e.target.value)} 
+                        />
                         <InputField
                             type="password"
                             placeholder="비밀번호"
-                            value={password}
-                            onChange={handlePasswordChange}
+                            value={pw}
+                            onChange={(e) => setPw(e.target.value)}
                         />
                         <InputField
                             type="password"
                             placeholder="비밀번호 확인"
-                            value={confirmPassword}
-                            onChange={handleConfirmPasswordChange}
+                            value={checkPw}
+                            onChange={(e) => setCheckPw(e.target.value)}
                         />
-                        <SignupButton type="submit">회원가입</SignupButton>
+                        <SignupButton onClick={signupOnclick}>회원가입</SignupButton>
                     </SignupForm>
                 </SignupInner>
             </SignupBox>
@@ -77,7 +92,7 @@ const SignupInner = styled.div`
     text-align: center;
 `;
 
-const SignupForm = styled.form`
+const SignupForm = styled.div`
     display: flex;
     flex-direction: column;
     gap: 20px;
