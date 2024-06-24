@@ -1,26 +1,25 @@
 import AuthHeader from '@/components/header/AuthHeader';
 import styled from 'styled-components';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 const LoginPage = () => {
     const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
+    const [pw, setPw] = useState('');
+    const navigation = useNavigate();
 
-    const handleEmailChange = (e) => {
-        setEmail(e.target.value);
-    };
-
-    const handlePasswordChange = (e) => {
-        setPassword(e.target.value);
-    };
-
-    const handleLoginFormSubmit = (e) => {
-        e.preventDefault();
-
-        console.log('Email:', email);
-        console.log('Password:', password);
-
-        window.location.href = '/';
+    const loginOnClick = async () => {
+        try {
+            const response = await axios.post(`http://localhost:8081/users/login`, {
+                email: email,
+                password: pw,
+            });
+            localStorage.setItem("Key", response.data.accessToken)
+            navigation('/')
+        } catch (error) {
+            throw error;
+        }
     };
 
     return (
@@ -37,15 +36,20 @@ const LoginPage = () => {
                         <br />
                         로그인
                     </h1>
-                    <LoginForm onSubmit={handleLoginFormSubmit}>
-                        <InputField type="email" placeholder="이메일" value={email} onChange={handleEmailChange} />
+                    <LoginForm>
+                        <InputField
+                            type="email"
+                            placeholder="이메일"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                        />
                         <InputField
                             type="password"
                             placeholder="비밀번호"
-                            value={password}
-                            onChange={handlePasswordChange}
+                            value={pw}
+                            onChange={(e) => setPw(e.target.value)}
                         />
-                        <LoginButton type="submit">로그인</LoginButton>
+                        <LoginButton onClick={loginOnClick}>로그인</LoginButton>
                     </LoginForm>
                 </LoginInner>
             </LoginBox>
@@ -65,7 +69,7 @@ const LoginInner = styled.div`
     text-align: center;
 `;
 
-const LoginForm = styled.form`
+const LoginForm = styled.div`
     display: flex;
     flex-direction: column;
     gap: 20px;
