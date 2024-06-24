@@ -1,44 +1,84 @@
 import AuthHeader from '@/components/header/AuthHeader';
 import styled from 'styled-components';
-import profile from '@/assets/profile.svg';
 import { Link } from 'react-router-dom';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 
 const MyPage = () => {
-    const [interests, setInterests] = useState(['바다', '산책로', '뷰', '맛집']);
+    const token = localStorage.getItem("Key");
+    console.log(token);
+
+    const [nickname, setNickname] = useState('');
+    const [email, setEmail] = useState('');
+    const [interests, setInterests] = useState([]);
+    const [selectedInterests, setSelectedInterests] = useState([]);
+    const [percent, setPercent] = useState([]);
+    const [image, setImage] = useState('');
     const [showModal, setShowModal] = useState(false);
-    const [reviewsByCountry, setReviewsByCountry] = useState({
-        대한민국: 60,
-        파리: 30,
-        미국: 20,
-        일본: 10,
-    });
 
-    const newInterests = ['산', '평지', '도심', '도심 외'];
+    const DefaultInterests = ["SEA", "MOUNTAIN", "WORKING_ROAD", "RESTAURANT", "VIEW", "FESTIVAL", "NATURE", "FOOD", "SHOPPING", "CULTURE"];
 
-    const addInterest = (interest) => {
-        setInterests([...interests, interest]);
-        setShowModal(false);
+    useEffect(() => {
+        getProfile();
+    }, []);
+
+    const getProfile = async () => {
+        try {
+            const res = await axios.get(`http://localhost:8081/users/profile`, {
+                headers: {
+                    Authorization: 'Bearer ' + token
+                }
+            });
+            setNickname(res.data.nickname);
+            setEmail(res.data.email);
+            setInterests(res.data.interests);
+            setPercent(res.data.percent);
+            setImage(res.data.image);
+        } catch (error) {
+            throw error;
+        }
     };
+
+    const addInterest = (item) => {
+        if (!selectedInterests.includes(item)) {
+            setSelectedInterests([...selectedInterests, item]);
+        } else {
+            setSelectedInterests(selectedInterests.filter(interest => interest !== item));
+        }
+    };
+
+    const saveInterests = async () => {
+        try {
+            await axios.patch(`http://localhost:8081/users/interest`, { interests: selectedInterests }, {
+                headers: {
+                    Authorization: 'Bearer ' + token
+                }
+            });
+            setInterests(selectedInterests);
+            setShowModal(false);
+        } catch (error) {
+            throw error;
+        }
+    };
+
+    const interestsString = interests.join(', ');
 
     return (
         <div>
             <AuthHeader />
             <MyPageContainer>
                 <ProfileBox>
-                    <ProfileImage src={profile} alt="Profile" />
+                    <ProfileImage src={image} alt="ProfileImage" />
                 </ProfileBox>
                 <UserInfoBox>
-                    <UserInfoItem>사용자 닉네임</UserInfoItem>
-                    <UserInfoItem>user@example.com</UserInfoItem>
-                    <UserInfoItem>사용자 자기소개 내용</UserInfoItem>
-                    <UserInfoItem>사용자 관심사: {interests.join(', ')}</UserInfoItem>
+                    <UserInfoItem>{nickname}</UserInfoItem>
+                    <UserInfoItem>{email}</UserInfoItem>
+                    <UserInfoItem>관심사: {interestsString}</UserInfoItem>
                 </UserInfoBox>
                 <ActionsBox>
                     <ActionButton onClick={() => setShowModal(true)}>+</ActionButton>
                 </ActionsBox>
                 <ActionsBox>
-                    <ActionLink to="/liked-reviews">좋아요 한 후기</ActionLink>
                     <ActionLink to="/my-reviews">내가 쓴 후기</ActionLink>
                 </ActionsBox>
             </MyPageContainer>
@@ -50,23 +90,28 @@ const MyPage = () => {
                     <ModalBox>
                         <ModalHeader>관심사 추가</ModalHeader>
                         <ModalContent>
-                            {newInterests.map((item) => (
-                            <InterestButton key={item} onClick={() => addInterest(item)}>
-                                {item}
-                            </InterestButton>
+                            {DefaultInterests.map((item) => (
+                                <InterestButton
+                                    key={item}
+                                    onClick={() => addInterest(item)}
+                                    selected={selectedInterests.includes(item)}
+                                >
+                                    {item}
+                                </InterestButton>
                             ))}
                         </ModalContent>
                         <ModalFooter>
                             <CloseButton onClick={() => setShowModal(false)}>닫기</CloseButton>
+                            <SaveButton onClick={saveInterests}>수정</SaveButton>
                         </ModalFooter>
                     </ModalBox>
                 </ModalContainer>
             )}
             <CountryReviews>
-                {Object.entries(reviewsByCountry).map(([country, percent]) => (
-                    <ReviewBar key={country}>
-                        <CountryName>{country}</CountryName>
-                        <ProgressBar percent={percent} />
+                {percent.map((country, index) => (
+                    <ReviewBar key={index}>
+                        <CountryName>{country.country}</CountryName>
+                        <ProgressBar percent={country.percent} />
                     </ReviewBar>
                 ))}
             </CountryReviews>
@@ -176,16 +221,22 @@ const ModalContent = styled.div`
 const ModalFooter = styled.div`
     display: flex;
     justify-content: flex-end;
+    gap: 10px;
 `;
 
 const InterestButton = styled.button`
     margin-bottom: 10px;
     margin-right: 10px;
-    background-color: #eee;
+    background-color: ${(props) => (props.selected ? '#007bff' : '#eee')};
+    color: ${(props) => (props.selected ? '#fff' : '#000')};
     border: none;
     border-radius: 5px;
     padding: 5px 10px;
     cursor: pointer;
+
+    &:hover {
+        background-color: ${(props) => (props.selected ? '#0056b3' : '#ccc')};
+    }
 `;
 
 const CloseButton = styled.button`
@@ -194,6 +245,19 @@ const CloseButton = styled.button`
     border-radius: 5px;
     padding: 5px 10px;
     cursor: pointer;
+`;
+
+const SaveButton = styled.button`
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    padding: 5px 10px;
+    cursor: pointer;
+
+    &:hover {
+        background-color: #0056b3;
+    }
 `;
 
 const CountryReviews = styled.div`
@@ -207,7 +271,7 @@ const ReviewBar = styled.div`
     display: flex;
     align-items: center;
     margin-bottom: 10px;
-    position: relative; /* 상대적 위치 지정 */
+    position: relative;
 `;
 
 const Line = styled.div`
