@@ -1,47 +1,44 @@
 import styled from 'styled-components';
-import image from '@/assets/franch.svg';
 import Header from '@/components/header/Header';
+import LoginHeader from '@/components/header/LoginHeader';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import axios from 'axios';
+import { useSearchParams } from 'react-router-dom';
 
-const SearchPage = ({searchQuery}) => {
-    const posts = [
-        {
-            id: 1,
-            image: '게시글 이미지 URL',
-            author: '작성자',
-            date: '작성일',
-            title: '게시글 제목',
-            description: '게시글 설명',
-        },
-        {
-            id: 2,
-            image: '게시글 이미지 URL',
-            author: '작성자',
-            date: '작성일',
-            title: '게시글 제목',
-            description: '게시글 설명',
-        },
-        {
-            id: 3,
-            image: '게시글 이미지 URL',
-            author: '작성자',
-            date: '작성일',
-            title: '게시글 제목',
-            description: '게시글 설명',
-        },
-    ];
+const SearchPage = () => {
+    const [posts, setPosts] = useState([]);
+    const [searchParams] = useSearchParams();
+    const searchQuery = searchParams.get('q')
+
+    useEffect(() => {
+        getSearchList();
+    }, []);
+
+    const getSearchList = async () => {
+        try {
+            const res = await axios.get(`http://localhost:8081/review/search`, {
+                params: {
+                    keyword: searchQuery,
+                }
+            });
+            setPosts(res.data);
+        } catch (error) {
+            console.error(error);
+        }
+    };
 
     return (
         <MainContainer>
-            <Header />
+            {localStorage.getItem('Key') ? <LoginHeader /> : <Header />}
             <MainText>
-                <h2>{searchQuery ? `${searchQuery}에 대한 검색 결과` : "검색 결과"}</h2>
+                <h2>{searchQuery ? `${searchQuery}에 대한 검색 결과` : '검색 결과'}</h2>
             </MainText>
-            <Link to={`/page`} style={{ textDecoration: 'none', color: 'inherit' }}>
-                {posts.map((post, index) => (
-                    <Post key={post.id} index={index} post={post} />
-                ))}
-            </Link>
+            {posts.map((post) => (
+                <Link key={post.id} to={`/page/${post.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                    <Post post={post} />
+                </Link>
+            ))}
         </MainContainer>
     );
 };
@@ -51,19 +48,13 @@ export default SearchPage;
 const Post = ({ post }) => {
     return (
         <PostContainer>
-            <PostImage style={{ backgroundImage: `url(${image})` }} />
+            <PostImage style={{ backgroundImage: `url(${post.image})` }} />
             <PostText>
-                <br />
-                <br />
-                <p>{post.author}</p>
-                <p>{post.date}</p>
-                <br />
-                <br />
-                <br />
+                <p>{post.writerName}</p>
+                <p>{new Date(post.createDate).toLocaleDateString()}</p>
                 <br />
                 <br />
                 <h3>{post.title}</h3>
-                <p>{post.description}</p>
             </PostText>
         </PostContainer>
     );
